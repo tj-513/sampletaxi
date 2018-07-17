@@ -1,0 +1,24 @@
+<resources>
+
+    <string name="app_name">UberUX</string>
+    <string name="enter_no">Enter your mobile number</string>
+    <string name="phone_hint">Enter your mobile number</string>
+    <string name="get_moving">Get moving with Uber</string>
+    <string name="transition_arrow">transition_arrow</string>
+    <string name="transition_tvMoving">transition_tvMoving</string>
+    <string name="transition_ivFlag">transition_ivFlag</string>
+    <string name="transition_tvCode">transition_tvCode</string>
+    <string name="transition_tvPhoneNo">transition_tvPhoneNo</string>
+    <string name="transition_llPhone">transition_llPhone</string>
+    <string name="welcome_back">Welcome back, sign in to continue</string>
+    <string name="str_welcome_back">Welcome back, sign in to continue</string>
+    <string name="strEmail">Email</string>
+    <string name="strPassword">Password</string>
+    <string name="strForgotPassword">Forgot Password</string>
+    <string name="txtDontHaveAnAccount">Dont Have An Account?</string>
+    <string name="strSignInHere">Sign In Here!</string>
+    <string name="str_sign_up">Sign Up</string>
+    <string name="str_confirm_password">Confirm Password</string>
+    <string name="str_already_has_account">Confirm Password</string>
+    <string name="str_sign_in_here">Confirm Password</string>
+</resources>
