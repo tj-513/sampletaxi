@@ -36,7 +36,7 @@
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
         android:layout_marginTop="50dp"
-        android:background="#fff"
+        android:background="@drawable/rounded_corners_background"
         android:elevation="4dp"
         android:orientation="horizontal"
         android:visibility="gone">
@@ -63,24 +63,35 @@
 
     </RelativeLayout>
 
-    <LinearLayout
+    <include
+        android:id="@+id/selected_vehicle_btn"
+        android:layout_marginBottom="200dp"
         android:layout_width="100dp"
         android:layout_height="50dp"
-        android:layout_gravity="start|center_vertical"
-        android:layout_marginBottom="50dp">
+        android:layout_gravity="bottom|left"
+        layout="@layout/vehicles"
+         />
 
-        <ImageView
-            android:id="@+id/ivSelectVehicle"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:padding="10dp"
-            android:src="@drawable/ic_home" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="Tuk" />
-    </LinearLayout>
+
+    <!--<LinearLayout-->
+        <!--android:layout_width="100dp"-->
+        <!--android:layout_height="50dp"-->
+        <!--android:layout_gravity="start|center_vertical"-->
+        <!--android:layout_marginBottom="50dp">-->
+
+        <!--<ImageView-->
+            <!--android:id="@+id/ivSelectVehicle"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:padding="10dp"-->
+            <!--android:src="@drawable/ic_home" />-->
+
+        <!--<TextView-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:text="Tuk" />-->
+    <!--</LinearLayout>-->
 
 
     <ImageView

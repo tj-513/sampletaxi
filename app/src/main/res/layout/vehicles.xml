@@ -2,21 +2,25 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:padding="5dp"
+    android:background="@drawable/tr_br_rounded_corners_background">
 
     <android.support.v7.widget.AppCompatImageView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
         android:src="@drawable/ic_home"
+        android:layout_gravity="center"
         android:layout_weight="1"/>
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_height="match_parent"
+        android:text="Tuk"
         android:layout_weight="1"
-        android:text="Van"
-        android:textAlignment="center"
-        android:textSize="14sp" />
+        android:layout_gravity="center"
+        android:paddingLeft="5dp"
+        android:gravity="left|center_vertical"
+        />
 
 </LinearLayout>

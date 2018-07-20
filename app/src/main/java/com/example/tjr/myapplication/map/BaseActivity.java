@@ -4,6 +4,7 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -12,8 +13,10 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -36,6 +39,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -170,30 +174,13 @@ public abstract class BaseActivity extends AppCompatActivity implements OnMapRea
             return null;
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                Place place = PlaceAutocomplete.getPlace(this, data);
-                destination = place.getLatLng();
-                setUpPolyLine();
-
-            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-                Status status = PlaceAutocomplete.getStatus(this, data);
-                Toast.makeText(this, "Error " + status, Toast.LENGTH_SHORT).show();
-
-            } else if (resultCode == RESULT_CANCELED) {
-                // The user canceled the operation.
-            }
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (checkPermission()){
+            if (checkPermission()) {
                 onLocationPermissionGranted();
-            }else {
+            } else {
                 Toast.makeText(this, "Location permission denied.", Toast.LENGTH_SHORT).show();
             }
         } else {
@@ -210,7 +197,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnMapRea
 
     }
 
-    protected abstract void setUpPolyLine();
+    protected abstract void setUpPolyLine(LatLng source, LatLng destination);
 
 
     private Bitmap drawableToBitmap(Drawable drawable) {
@@ -235,6 +222,8 @@ public abstract class BaseActivity extends AppCompatActivity implements OnMapRea
         return bitmap;
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void addOverlay(LatLng place) {
 
         GroundOverlay groundOverlay = mMap.addGroundOverlay(new
@@ -368,6 +357,10 @@ public abstract class BaseActivity extends AppCompatActivity implements OnMapRea
 
         ArrayList<LatLng> points = null;
         PolylineOptions lineOptions = null;
+        Double maxLat = null,
+                maxLon = null,
+                minLat = null,
+                minLon = null;
 
         // Traversing through all the routes
         for (int i = 0; i < result.size(); i++) {
@@ -383,6 +376,14 @@ public abstract class BaseActivity extends AppCompatActivity implements OnMapRea
 
                 double lat = Double.parseDouble(point.get("lat"));
                 double lng = Double.parseDouble(point.get("lng"));
+                // Latitude
+                maxLat = maxLat != null ? Math.max(lat, maxLat) : lat;
+                minLat = minLat != null ? Math.min(lat, minLat) : lat;
+
+                // Longitude
+                maxLon = maxLon != null ? Math.max(lng, maxLon) : lng;
+                minLon = minLon != null ? Math.min(lng, minLon) : lng;
+
                 LatLng position = new LatLng(lat, lng);
 
                 points.add(position);
@@ -406,6 +407,12 @@ public abstract class BaseActivity extends AppCompatActivity implements OnMapRea
         greyOptions.jointType(ROUND);
         greyPolyLine = mMap.addPolyline(greyOptions);
 
+
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include(new LatLng(maxLat, maxLon));
+        builder.include(new LatLng(minLat, minLon));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 75));
+
         animatePolyLine();
     }
 
@@ -423,7 +430,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnMapRea
                 int animatedValue = (int) animator.getAnimatedValue();
                 int newPoints = (animatedValue * listLatLng.size()) / 100;
 
-                if (initialPointSize < newPoints ) {
+                if (initialPointSize < newPoints) {
                     latLngList.addAll(listLatLng.subList(initialPointSize, newPoints));
                     blackPolyLine.setPoints(latLngList);
                 }
@@ -441,7 +448,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnMapRea
         @Override
         public void onAnimationStart(Animator animator) {
 
-            addMarker(listLatLng.get(listLatLng.size()-1));
+            addMarker(listLatLng.get(listLatLng.size() - 1));
         }
 
         @Override

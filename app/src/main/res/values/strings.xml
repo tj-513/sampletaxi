@@ -21,4 +21,7 @@
     <string name="str_confirm_password">Confirm Password</string>
     <string name="str_already_has_account">Confirm Password</string>
     <string name="str_sign_in_here">Confirm Password</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

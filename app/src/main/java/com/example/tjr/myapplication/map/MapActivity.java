@@ -3,12 +3,16 @@ package com.example.tjr.myapplication.map;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ArgbEvaluator;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.transition.TransitionManager;
 import android.util.DisplayMetrics;
@@ -24,9 +28,17 @@ import android.widget.Toast;
 
 import com.example.tjr.myapplication.MainActivity;
 import com.example.tjr.myapplication.R;
+import com.example.tjr.myapplication.home.options.SelectVehicleFragment;
+import com.example.tjr.myapplication.selectionBar.SelectionBarFragment;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -50,7 +62,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MapActivity extends BaseActivity {
+public class MapActivity extends BaseActivity implements SelectVehicleFragment.OnFragmentInteractionListener {
 
     @BindView(R.id.rootFrame)
     FrameLayout rootFrame;
@@ -187,6 +199,16 @@ public class MapActivity extends BaseActivity {
         openPlaceAutoCompleteView();
     }
 
+    @SuppressLint("ResourceType")
+    @OnClick(R.id.selected_vehicle_btn)
+    void showVehicleSelectionFragment(){
+        SelectVehicleFragment fragment = SelectVehicleFragment.newInstance();
+        FragmentManager fm = getSupportFragmentManager();
+        fm.beginTransaction()
+                .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+                .show(fragment)
+                .commit();
+    }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     void startRevealAnimation() {
@@ -203,6 +225,7 @@ public class MapActivity extends BaseActivity {
 
             @Override
             public void onAnimationStart(Animator animation) {
+
                 super.onAnimationStart(animation);
             }
 
@@ -219,19 +242,32 @@ public class MapActivity extends BaseActivity {
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public void onMapReady(GoogleMap googleMap) {
         super.onMapReady(googleMap);
-        startRevealAnimation();
+        if (rootll.isAttachedToWindow()) {
+            startRevealAnimation();
+        } else {
+            this.rootll.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                    startRevealAnimation();
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+
+                }
+            });
+        }
 
 
     }
 
     @Override
-    protected void setUpPolyLine() {
+    protected void setUpPolyLine(LatLng source, LatLng destination) {
 
-        LatLng source = new LatLng(getUserLocation().getLatitude(), getUserLocation().getLongitude());
-        LatLng destination = getDestinationLatLong();
         if (source != null && destination != null) {
 
             Retrofit retrofit = new Retrofit.Builder()
@@ -299,6 +335,33 @@ public class MapActivity extends BaseActivity {
         startActivity(new Intent(this, MainActivity.class));
         finish();
     }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlaceAutocomplete.getPlace(this, data);
+                LatLng source = new LatLng(getUserLocation().getLatitude(), getUserLocation().getLongitude());
+                destination = place.getLatLng();
+                setUpPolyLine(source, destination);
+                showViewPagerWithTransition();
+
+            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
+                Status status = PlaceAutocomplete.getStatus(this, data);
+                Toast.makeText(this, "Error " + status, Toast.LENGTH_SHORT).show();
+
+            } else if (resultCode == RESULT_CANCELED) {
+                // The user canceled the operation.
+            }
+        }
+    }
+
 
 
 }
