@@ -121,7 +121,7 @@
         app:layout_constraintTop_toBottomOf="@+id/editText" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/signin_button"
         android:layout_width="141dp"
         android:layout_height="43dp"
         android:layout_marginEnd="8dp"
@@ -149,7 +149,7 @@
         android:textColor="@android:color/holo_blue_light"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button" />
+        app:layout_constraintTop_toBottomOf="@+id/signin_button" />
 
     <ImageButton
         android:id="@+id/btnFacebookSignIn"
@@ -211,13 +211,13 @@
             android:text="@string/txtDontHaveAnAccount"
             android:textColor="@android:color/black"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/textView6"
+            app:layout_constraintEnd_toStartOf="@+id/signup_text"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/textView6"
+            android:id="@+id/signup_text"
             android:layout_width="wrap_content"
             android:layout_height="20dp"
             android:layout_marginEnd="24dp"

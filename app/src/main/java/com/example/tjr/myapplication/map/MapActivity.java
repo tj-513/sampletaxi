@@ -5,19 +5,24 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ArgbEvaluator;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.transition.TransitionManager;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewAnimationUtils;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -29,16 +34,12 @@ import android.widget.Toast;
 import com.example.tjr.myapplication.MainActivity;
 import com.example.tjr.myapplication.R;
 import com.example.tjr.myapplication.home.options.SelectVehicleFragment;
-import com.example.tjr.myapplication.selectionBar.SelectionBarFragment;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -76,21 +77,25 @@ public class MapActivity extends BaseActivity implements SelectVehicleFragment.O
     @BindView(R.id.rlwhere)
     RelativeLayout rlWhere;
 
-    @BindView(R.id.ivHome)
-    ImageView ivHome;
 
     @BindView(R.id.tvWhereTo)
     TextView tvWhereto;
 
+    @BindView(R.id.ride_options_bar)
+    LinearLayout rideOptionsBar;
+
+
     ArgbEvaluator argbEvaluator;
 
     private LatLng destination;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
         ButterKnife.bind(this);
+        context = MapActivity.this;
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -182,12 +187,10 @@ public class MapActivity extends BaseActivity implements SelectVehicleFragment.O
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    @OnClick(R.id.ivHome)
     void showViewPagerWithTransition() {
 
         TransitionManager.beginDelayedTransition(rootFrame);
-        viewPager.setVisibility(View.VISIBLE);
-        ivHome.setVisibility(View.INVISIBLE);
+        rideOptionsBar.setVisibility(View.VISIBLE);
         rlWhere.setVisibility(View.INVISIBLE);
 
         mMap.setPadding(0, 0, 0, viewPager.getHeight());
@@ -199,15 +202,22 @@ public class MapActivity extends BaseActivity implements SelectVehicleFragment.O
         openPlaceAutoCompleteView();
     }
 
+    boolean isBarShown = false;
+
     @SuppressLint("ResourceType")
     @OnClick(R.id.selected_vehicle_btn)
-    void showVehicleSelectionFragment(){
+    void showVehicleSelectionFragment() {
+        isBarShown = !isBarShown;
+
         SelectVehicleFragment fragment = SelectVehicleFragment.newInstance();
         FragmentManager fm = getSupportFragmentManager();
-        fm.beginTransaction()
-                .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-                .show(fragment)
-                .commit();
+        if (isBarShown)
+            fm.beginTransaction()
+                    .replace(R.id.selection_fragment_holder, fragment)
+                    .setCustomAnimations(android.R.anim.slide_in_left, R.anim.slide_out_right)
+                    .commit();
+        else
+            fm.beginTransaction().remove(fragment);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -234,7 +244,6 @@ public class MapActivity extends BaseActivity implements SelectVehicleFragment.O
                 super.onAnimationEnd(animation);
 
                 rlWhere.setVisibility(View.VISIBLE);
-                ivHome.setVisibility(View.VISIBLE);
             }
         });
 
@@ -321,12 +330,11 @@ public class MapActivity extends BaseActivity implements SelectVehicleFragment.O
     @Override
     public void onBackPressed() {
 
-        if (viewPager.getVisibility() == View.VISIBLE) {
+        if (rideOptionsBar.getVisibility() == View.VISIBLE) {
 
             TransitionManager.beginDelayedTransition(rootFrame);
-            viewPager.setVisibility(View.INVISIBLE);
+            rideOptionsBar.setVisibility(View.INVISIBLE);
             mMap.setPadding(0, 0, 0, 0);
-            ivHome.setVisibility(View.VISIBLE);
             rlWhere.setVisibility(View.VISIBLE);
 
             return;
@@ -351,6 +359,7 @@ public class MapActivity extends BaseActivity implements SelectVehicleFragment.O
                 destination = place.getLatLng();
                 setUpPolyLine(source, destination);
                 showViewPagerWithTransition();
+                showOptions();
 
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
@@ -363,5 +372,70 @@ public class MapActivity extends BaseActivity implements SelectVehicleFragment.O
     }
 
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    void showOptions() {
+        addRideOption("Cheapest", "UBER", "400");
+        addRideOption("Nearest", "PICK ME", "500");
+        addRideOption("Other", "Kangaroo", "700");
+
+
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    void addRideOption(String speciality, String provider, String priceStr) {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        this.getWindowManager()
+                .getDefaultDisplay()
+                .getMetrics(displayMetrics);
+        int screenWidth = displayMetrics.widthPixels;
+        int margins = screenWidth / 24;
+        LinearLayout rideOption = new LinearLayout(this);
+        LinearLayout.LayoutParams rideOptionParam = new LinearLayout.LayoutParams((screenWidth / 4), ViewGroup.LayoutParams.WRAP_CONTENT);
+        rideOptionParam.setMargins(margins, 10, margins, 10);
+        rideOption.setLayoutParams(rideOptionParam);
+        rideOption.setOrientation(LinearLayout.VERTICAL);
+        rideOption.setBackground(getResources().getDrawable(R.drawable.rounded_corners_background));
+
+        TextView specialityText = new TextView(context);
+        LinearLayout.LayoutParams specialityTextParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        specialityText.setLayoutParams(specialityTextParams);
+        specialityText.setText(speciality);
+        specialityText.setPadding(5, 5, 5, 5);
+        specialityText.setTypeface(Typeface.DEFAULT_BOLD);
+        specialityText.setTextColor(Color.BLACK);
+        specialityText.setGravity(Gravity.CENTER);
+        rideOption.addView(specialityText);
+
+        ImageView imageView = new ImageView(context);
+        LinearLayout.LayoutParams imageViewParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        imageView.setLayoutParams(imageViewParams);
+        imageView.setPadding(10, 10, 10, 10);
+        imageView.setImageDrawable(getResources().getDrawable(R.drawable.cab2));
+        rideOption.addView(imageView);
+
+        TextView providerText = new TextView(context);
+        LinearLayout.LayoutParams providerParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        providerText.setLayoutParams(specialityTextParams);
+        providerText.setText(provider);
+        providerText.setPadding(5, 5, 5, 5);
+        providerText.setTypeface(Typeface.DEFAULT);
+        providerText.setTextColor(Color.BLACK);
+        providerText.setGravity(Gravity.CENTER);
+        rideOption.addView(providerText);
+
+
+        TextView priceText = new TextView(context);
+        LinearLayout.LayoutParams priceParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        priceText.setLayoutParams(specialityTextParams);
+        priceText.setText("Rs. " + priceStr);
+        priceText.setPadding(5, 5, 5, 5);
+        priceText.setTypeface(Typeface.DEFAULT);
+        priceText.setTextColor(Color.BLACK);
+        priceText.setGravity(Gravity.CENTER);
+        rideOption.addView(priceText);
+
+        rideOptionsBar.addView(rideOption);
+
+    }
 
 }

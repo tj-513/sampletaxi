@@ -169,14 +169,14 @@
             android:text="@string/str_already_has_account"
             android:textColor="@android:color/black"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/textView6"
+            app:layout_constraintEnd_toStartOf="@+id/signup_text"
             app:layout_constraintHorizontal_bias="0.13"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.2" />
 
         <TextView
-            android:id="@+id/textView6"
+            android:id="@+id/signup_text"
             android:layout_width="122dp"
             android:layout_height="16dp"
             android:layout_marginEnd="24dp"

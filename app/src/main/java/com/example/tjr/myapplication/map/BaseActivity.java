@@ -105,6 +105,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnMapRea
         mMap.setMyLocationEnabled(true);
         mFusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
                     @Override
                     public void onSuccess(Location location) {
 
